@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+host_arch=$(uname -m)
+
+declare -A arch_map
+
+arch_map["x86_64"]="amd64"
+arch_map["i386"]="386"
+arch_map["aarch64"]="arm64"
+arch_map["armv6l"]="armv6l"
+
+cmd=$1
+version=$2
+
+cmd_help="help"
+cmd_use="use"
+cmd_install="install"
+
+if [[ -z "${arch_map[$host_arch]}" ]]; then
+    echo "Unsupported architecture: $host_arch"
+    exit 1
+fi
+
+if [[ -z "$GOPATH" ]]; then
+    echo 'export GOPATH="$HOME/.wizard"' >> "$HOME/.bashrc"
+    echo 'export GOBIN="$HOME/.wizard/bin"' >> "$HOME/.bashrc"
+    echo 'PATH="$PATH:$GOBIN"' >> "$HOME/.bashrc"
+    echo "Run 'source ~/.bashrc' or restart your shell to apply changes"
+fi
+
+if [ ! -d "$HOME/.wizard" ]; then
+    echo "go store in $HOME/.wizard"
+    mkdir -p $HOME/.wizard/bin
+    mkdir -p $HOME/.wizard/versions
+    mkdir -p $HOME/.wizard/cache
+fi
+
+print_info() {
+    cat << EOF
+This tool for manage golang versions
+use next commands:
+install <version> - use to install certain version golang.
+Example: wizard install 1.25.5
+use <version> - use to choose golang version:
+help - show all commands:
+EOF
+}
+
+case $cmd in
+    $cmd_install)
+    if [[ -z "$version" ]]; then
+        echo "Version is required"
+        exit 1
+    fi
+
+    # Путь к версии
+    target_dir="$HOME/.wizard/versions/go$version"
+
+    # Проверяем, есть ли уже установленная версия
+    if [[ -d "$target_dir" ]]; then
+        echo "Go $version is already installed in $target_dir"
+        exit 0
+    fi
+
+    url="https://go.dev/dl/go$version.linux-${arch_map[$host_arch]}.tar.gz"
+
+    # Проверяем, существует ли архив
+    if wget --spider -q "$url"; then
+        echo "Файл существует, можно скачивать"
+        wget "$url"
+    else
+        echo "Файл не найден: $url"
+        exit 1
+    fi
+
+    # Распаковываем silently
+    tar -xf "go$version.linux-${arch_map[$host_arch]}.tar.gz" > /dev/null 2>&1
+    rm -f "go$version.linux-${arch_map[$host_arch]}.tar.gz"
+
+    # Перемещаем в директорию с версиями
+    mv --force go "$target_dir"
+    echo "Go $version is installed"
+    ;;
+
+    $cmd_use)
+    ln -sf "$HOME/.wizard/versions/go$version/bin/go" "$HOME/.wizard/bin/go"
+    echo "Now using Go $version"
+    ;;
+
+    $cmd_help|*)
+    print_info
+    ;;
+esac
