@@ -1,7 +1,5 @@
-# Файл кеша
 CACHE_FILE="$HOME/.wizard/cache/go_versions.txt"
 
-# Получение всех версий Go 1.x.x (с кешем на день)
 get_go_versions() {
     if [[ ! -f "$CACHE_FILE" || $(find "$CACHE_FILE" -mtime +7) ]]; then
         curl -s https://go.dev/dl/ \
@@ -11,14 +9,12 @@ get_go_versions() {
     cat "$CACHE_FILE"
 }
 
-# Completion для install
 _wizard_install() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
     COMPREPLY=($(compgen -W "$(get_go_versions)" -- "$cur"))
 }
 
-# Completion для use (только установленные версии)
 _wizard_use() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -29,7 +25,6 @@ _wizard_use() {
     fi
 }
 
-# Основной completion
 _wizard() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
