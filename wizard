@@ -15,6 +15,7 @@ cmd_help="help"
 cmd_use="use"
 cmd_install="install"
 cmd_uninstall="uninstall"
+cmd_list="list"
 
 if [[ -z "${arch_map[$host_arch]}" ]]; then
     echo "Unsupported architecture: $host_arch"
@@ -32,20 +33,20 @@ if [ ! -d "$HOME/.wizard" ]; then
     echo "go store in $HOME/.wizard"
     mkdir -p $HOME/.wizard/bin
     mkdir -p $HOME/.wizard/versions
-    mkdir -p $HOME/.wizard/cache
+    mkdir -p $HOME/.cache/wizard
 fi
 
-print_info() {
-    cat << EOF
-This tool for manage golang versions
 
+print_info() {
+printf "
 Commands:
 
-    install [version] - use to install certain version golang.
-    uninstall [version] - use to remove certain version golang.
-    use [version] - choose current golang version:
-    help - show all commands:
-EOF
+ \033[32minstall\033[0m [version] - use to install certain version golang.
+ \033[32muninstall\033[0m [version] - use to remove certain version golang.
+ \033[32muse\033[0m [version] - choose current golang version
+ \033[32mlist\033[0m - to see all installed versions golang
+ \033[32mhelp\033[0m - show all commands
+"
 }
 
 case $cmd in
@@ -99,6 +100,10 @@ case $cmd in
             echo "delete failed"
             echo "cannot find this version"
         fi
+    ;;
+
+    $cmd_list)
+        echo $(ls "$HOME/.wizard/versions/" | sed s/go//g)
     ;;
 
     $cmd_help|*)

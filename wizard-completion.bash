@@ -1,8 +1,8 @@
-CACHE_FILE="$HOME/.wizard/cache/go_versions.txt"
+CACHE_FILE="$HOME/.cache/wizard/go_versions.txt"
 
 get_go_versions() {
     if [[ ! -f "$CACHE_FILE" || $(find "$CACHE_FILE" -mtime +7) ]]; then
-        curl -s https://go.dev/dl/ | grep -oE 'id="go1\.[0-9]+\.[0-9]+' | sed 's/id="go//g' | sort -Vu
+        curl -s https://go.dev/dl/ | grep -oE 'id="go1\.[0-9]+\.[0-9]+' | sed 's/id="go//g' | sort -Vu > "$CACHE_FILE"
     fi
     cat "$CACHE_FILE"
 }
@@ -39,7 +39,7 @@ _wizard() {
     COMPREPLY=()
 
     if [[ $COMP_CWORD -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "help use install uninstall" -- "$cur"))
+        COMPREPLY=($(compgen -W "help use install uninstall list" -- "$cur"))
         return 0
     fi
 
