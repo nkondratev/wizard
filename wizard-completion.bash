@@ -13,6 +13,16 @@ _wizard_install() {
     COMPREPLY=($(compgen -W "$(get_go_versions)" -- "$cur"))
 }
 
+_wizard_uninstall() {
+    local cur
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    if [[ -d "$HOME/.wizard/versions" ]]; then
+        local installed_versions
+        installed_versions=$(ls "$HOME/.wizard/versions" | sed 's/^go//')
+        COMPREPLY=($(compgen -W "$installed_versions" -- "$cur"))
+    fi
+}
+
 _wizard_use() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -29,12 +39,13 @@ _wizard() {
     COMPREPLY=()
 
     if [[ $COMP_CWORD -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "help use install" -- "$cur"))
+        COMPREPLY=($(compgen -W "help use install uninstall" -- "$cur"))
         return 0
     fi
 
     case "${COMP_WORDS[1]}" in
         install) _wizard_install ;;
+        uninstall) _wizard_uninstall ;;
         use)     _wizard_use ;;
         *)       ;;
     esac

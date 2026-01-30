@@ -14,6 +14,7 @@ version=$2
 cmd_help="help"
 cmd_use="use"
 cmd_install="install"
+cmd_uninstall="uninstall"
 
 if [[ -z "${arch_map[$host_arch]}" ]]; then
     echo "Unsupported architecture: $host_arch"
@@ -37,11 +38,13 @@ fi
 print_info() {
     cat << EOF
 This tool for manage golang versions
-use next commands:
-install <version> - use to install certain version golang.
-Example: wizard install 1.25.5
-use <version> - use to choose golang version:
-help - show all commands:
+
+Commands:
+
+    install [version] - use to install certain version golang.
+    uninstall [version] - use to remove certain version golang.
+    use [version] - choose current golang version:
+    help - show all commands:
 EOF
 }
 
@@ -52,10 +55,8 @@ case $cmd in
         exit 1
     fi
 
-    # Путь к версии
     target_dir="$HOME/.wizard/versions/go$version"
 
-    # Проверяем, есть ли уже установленная версия
     if [[ -d "$target_dir" ]]; then
         echo "Go $version is already installed in $target_dir"
         exit 0
@@ -63,20 +64,17 @@ case $cmd in
 
     url="https://go.dev/dl/go$version.linux-${arch_map[$host_arch]}.tar.gz"
 
-    # Проверяем, существует ли архив
     if wget --spider -q "$url"; then
-        echo "Файл существует, можно скачивать"
+        echo "File found, ready to download"
         wget "$url"
     else
-        echo "Файл не найден: $url"
+        echo "File not found: $url"
         exit 1
     fi
 
-    # Распаковываем silently
     tar -xf "go$version.linux-${arch_map[$host_arch]}.tar.gz" > /dev/null 2>&1
     rm -f "go$version.linux-${arch_map[$host_arch]}.tar.gz"
 
-    # Перемещаем в директорию с версиями
     mv --force go "$target_dir"
     echo "Go $version is installed"
     ;;
@@ -84,6 +82,23 @@ case $cmd in
     $cmd_use)
     ln -sf "$HOME/.wizard/versions/go$version/bin/go" "$HOME/.wizard/bin/go"
     echo "Now using Go $version"
+    ;;
+
+    $cmd_uninstall)
+        if [[ -z "$version" ]]; then
+            echo "Version is required"
+            exit 1
+        fi
+
+        target_dir="$HOME/.wizard/versions/go$version"
+
+        if [[ -d "$target_dir" ]]; then
+           rm -r "$target_dir"
+           echo "delete succeded"
+        else
+            echo "delete failed"
+            echo "cannot find this version"
+        fi
     ;;
 
     $cmd_help|*)
