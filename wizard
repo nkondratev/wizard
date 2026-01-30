@@ -65,6 +65,11 @@ case $cmd in
         exit 0
     fi
 
+    if ! ping -c1 8.8.8.8 &>/dev/null; then
+        echo "No internet"
+        exit 1
+    fi
+
     url="https://go.dev/dl/go$version.linux-${arch_map[$host_arch]}.tar.gz"
 
     if wget --spider -q "$url"; then
@@ -111,4 +116,5 @@ case $cmd in
     $cmd_help|*)
     print_info
     ;;
+
 esac
