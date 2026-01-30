@@ -2,9 +2,7 @@ CACHE_FILE="$HOME/.wizard/cache/go_versions.txt"
 
 get_go_versions() {
     if [[ ! -f "$CACHE_FILE" || $(find "$CACHE_FILE" -mtime +7) ]]; then
-        curl -s https://go.dev/dl/ \
-        | grep -oP 'id="go\K1\.\d+\.\d+' \
-        | sort -u -V > "$CACHE_FILE"
+        curl -s https://go.dev/dl/ | grep -oE 'id="go1\.[0-9]+\.[0-9]+' | sed 's/id="go//g' | sort -Vu
     fi
     cat "$CACHE_FILE"
 }
