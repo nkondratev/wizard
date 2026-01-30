@@ -36,16 +36,18 @@ if [ ! -d "$HOME/.wizard" ]; then
     mkdir -p $HOME/.cache/wizard
 fi
 
+GREEN="\033[32m"
+END="\033[0m"
 
 print_info() {
 printf "
 Commands:
 
- \033[32minstall\033[0m [version] - use to install certain version golang.
- \033[32muninstall\033[0m [version] - use to remove certain version golang.
- \033[32muse\033[0m [version] - choose current golang version
- \033[32mlist\033[0m - to see all installed versions golang
- \033[32mhelp\033[0m - show all commands
+ ${GREEN}install${END} [version] - use to install certain version golang.
+ ${GREEN}uninstall${END}ove certain version golang.
+ ${GREEN}use${END} [version] - choose current golang version
+ ${GREEN}list${END} - to see all installed versions golang
+ ${GREEN}help${END} - show all commands
 "
 }
 
