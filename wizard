@@ -23,73 +23,91 @@ if [[ -z "${arch_map[$host_arch]}" ]]; then
 fi
 
 if [[ -z "$GOPATH" ]]; then
-    echo 'export GOPATH="$HOME/.wizard"' >> "$HOME/.bashrc"
-    echo 'export GOBIN="$HOME/.wizard/bin"' >> "$HOME/.bashrc"
-    echo 'PATH="$PATH:$GOBIN"' >> "$HOME/.bashrc"
-    echo "Run 'source ~/.bashrc' or restart your shell to apply changes"
-fi
-
-if [ ! -d "$HOME/.wizard" ]; then
-    echo "go store in $HOME/.wizard"
-    mkdir -p $HOME/.wizard/bin
-    mkdir -p $HOME/.wizard/versions
+    echo "input directory for store golang"
+    read user_path
+    
+    mkdir -p $HOME/$user_path/bin
+    mkdir -p $HOME/$user_path/versions
     mkdir -p $HOME/.cache/wizard
+    
+    GOPATH="$HOME/$user_path"
+    GOBIN="$HOME/$user_path/bin"
+
+    go_path="export GOPATH=$HOME/$user_path"
+    go_bin="export GOBIN=$HOME/$user_path/bin"
+
+    echo $go_path >> "$HOME/.bashrc"
+    echo $go_bin >> "$HOME/.bashrc"
+    echo 'PATH="$PATH:$GOBIN:$GOPATH"' >> "$HOME/.bashrc"
+
+    echo "Run 'source ~/.bashrc' or restart your shell to apply changes"
+    echo "go store in $HOME/$user_path"
+    exit 0
 fi
 
 GREEN="\033[32m"
 END="\033[0m"
 
 print_info() {
-printf "
-Commands:
+    printf "
+    Commands:
 
- ${GREEN}install${END} [version] - use to install certain version golang.
- ${GREEN}uninstall${END}ove certain version golang.
- ${GREEN}use${END} [version] - choose current golang version
- ${GREEN}list${END} - to see all installed versions golang
- ${GREEN}help${END} - show all commands
-"
+     ${GREEN}install${END} [version] - use to install certain version golang.
+     ${GREEN}uninstall${END} [version] - use to uninstall certain version golang.
+     ${GREEN}use${END} [version] - choose current golang version
+     ${GREEN}list${END} - to see all installed versions golang
+     ${GREEN}help${END} - show all commands
+
+    "
 }
 
 case $cmd in
     $cmd_install)
-    if [[ -z "$version" ]]; then
-        echo "Version is required"
-        exit 1
-    fi
+        if [[ -z "$version" ]]; then
+            echo "Version is required"
+            exit 1
+        fi
 
-    target_dir="$HOME/.wizard/versions/go$version"
+        target_dir="$GOPATH/versions/go$version"
 
-    if [[ -d "$target_dir" ]]; then
-        echo "Go $version is already installed in $target_dir"
-        exit 0
-    fi
+        if [[ -d "$target_dir" ]]; then
+            echo "Go $version is already installed in $GOPATH"
+            exit 0
+        fi
 
-    if ! ping -c1 8.8.8.8 &>/dev/null; then
-        echo "No internet"
-        exit 1
-    fi
+        mkdir -p $target_dir
 
-    url="https://go.dev/dl/go$version.linux-${arch_map[$host_arch]}.tar.gz"
+        if ! ping -c1 8.8.8.8 &>/dev/null; then
+            echo "No internet"
+            exit 1
+        fi
 
-    if wget --spider -q "$url"; then
-        echo "File found, ready to download"
-        wget "$url"
-    else
-        echo "File not found: $url"
-        exit 1
-    fi
+        url="https://go.dev/dl/go$version.linux-${arch_map[$host_arch]}.tar.gz"
 
-    tar -xf "go$version.linux-${arch_map[$host_arch]}.tar.gz" > /dev/null 2>&1
-    rm -f "go$version.linux-${arch_map[$host_arch]}.tar.gz"
+        if wget --spider -q "$url"; then
+            echo "File found, ready to download"
+            wget "$url"
+        else
+            echo "File not found: $url"
+            exit 1
+        fi
 
-    mv --force go "$target_dir"
-    echo "Go $version is installed"
+        tar -xf "go$version.linux-${arch_map[$host_arch]}.tar.gz" > /dev/null 2>&1
+        rm -f "go$version.linux-${arch_map[$host_arch]}.tar.gz"
+
+        mv --force go/* "$target_dir/"
+        rmdir go
+        echo "Go $version is installed"
     ;;
 
     $cmd_use)
-    ln -sf "$HOME/.wizard/versions/go$version/bin/go" "$HOME/.wizard/bin/go"
-    echo "Now using Go $version"
+        if [[ -z "$version" ]]; then
+            echo "Version is required"
+            exit 1
+        fi
+
+        ln -sf "$GOPATH/versions/go$version/bin/go" "$GOBIN/go"
+        echo "Now using Go $version"
     ;;
 
     $cmd_uninstall)
@@ -98,7 +116,7 @@ case $cmd in
             exit 1
         fi
 
-        target_dir="$HOME/.wizard/versions/go$version"
+        target_dir="$GOPATH/versions/go$version"
 
         if [[ -d "$target_dir" ]]; then
            rm -r "$target_dir"
@@ -110,11 +128,16 @@ case $cmd in
     ;;
 
     $cmd_list)
-        echo $(ls "$HOME/.wizard/versions/" | sed s/go//g)
+        if [[ -d "$GOPATH/versions/" ]]; then
+            echo "directory versions not found"
+            exit -1
+        fi
+
+        echo $(ls "$GOPATH/versions/" | sed s/go//g)
     ;;
 
     $cmd_help|*)
-    print_info
+        print_info
     ;;
 
 esac

@@ -16,9 +16,9 @@ _wizard_install() {
 _wizard_uninstall() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
-    if [[ -d "$HOME/.wizard/versions" ]]; then
+    if [[ -d "$GOPATH/versions" ]]; then
         local installed_versions
-        installed_versions=$(ls "$HOME/.wizard/versions" | sed 's/^go//')
+        installed_versions=$(ls "$GOPATH/versions" | sed 's/^go//')
         COMPREPLY=($(compgen -W "$installed_versions" -- "$cur"))
     fi
 }
@@ -26,9 +26,9 @@ _wizard_uninstall() {
 _wizard_use() {
     local cur
     cur="${COMP_WORDS[COMP_CWORD]}"
-    if [[ -d "$HOME/.wizard/versions" ]]; then
+    if [[ -d "$GOPATH/versions" ]]; then
         local installed_versions
-        installed_versions=$(ls "$HOME/.wizard/versions" | sed 's/^go//')
+        installed_versions=$(ls "$GOPATH/versions" | sed 's/^go//')
         COMPREPLY=($(compgen -W "$installed_versions" -- "$cur"))
     fi
 }
